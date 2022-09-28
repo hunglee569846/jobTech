@@ -2,9 +2,10 @@ const {query} = require('../model/pg');
 const bcryptPassword = require('../lib/encryptPassword')
 
 module.exports = {
-    selectUserInfo: function(){
-        let sql = 'select * from authentication."user" u';
-        return query(sql, [])
+    selectUserInfo: function(userUUID){
+        let sql = `select ui.uuid ,ui."name" ,ui .user_id ,ui.phone_number ,ui.company ,ui.email ,ui."role" ,ui.created_date  
+        from authentication.user_info ui where ui.user_id = $1 and isdelete = false and isactive = true;`;
+        return query(sql, [userUUID])
     },
 
     selectUserbyUsername: function(param){

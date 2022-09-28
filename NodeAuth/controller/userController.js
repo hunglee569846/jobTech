@@ -41,7 +41,6 @@ function registerUser(req, res) {
                     })
                 } else {
                     const password = req.query.password;
-                    console.log("====paswor: ", password);
                     bcryptPassword.encryptPassword(password)
                         .then(result => {
                             if (result) {
@@ -55,7 +54,6 @@ function registerUser(req, res) {
                                 };
                                 user.registerUser(param)
                                     .then(result => {
-                                        console.log("==== registerUser result: ", result);
                                         if (result.rowCount > 0) {
                                             res.status(200).json({
                                                 statusCode: 200,
@@ -124,5 +122,12 @@ function login(req, res) {
             })
 
     })
+
+}
+function loginCheck(req, res, next) {
+    let decode_token = decodedToken(req, res);
+    if (decode_token === 'jwt expired') {
+        return res.status(401).json('token expires').end();
+    }else next();
 
 }

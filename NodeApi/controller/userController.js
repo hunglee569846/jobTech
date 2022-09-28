@@ -2,15 +2,18 @@ const express = require('express')
 const user = require('../model/user')
 const bcryptPassword = require('../lib/encryptPassword')
 const accessToken = require('../middleware/accessToken')
-const { v4: uuidv4 } = require('uuid');
-const uuid = uuidv4();
-const bcrypt = require('bcrypt');
+const { v4: uuidv4 } = require('uuid')
+const uuid = uuidv4()
+const bcrypt = require('bcrypt')
+
 
 
 module.exports = {
     selectUserAccount,
     registerUser,
-    login
+    login, 
+    selectUserInfo,
+    testdecodetoken
 }
 
 function selectUserAccount(req, res) {
@@ -32,6 +35,7 @@ function registerUser(req, res) {
             username: req.query.username,
             password: req.query.password,
         }
+        console.log("Log info user registerUser: ", userParam);
         user.selectUserbyUsername(userParam)
             .then(result => {
                 if (result.rowCount > 0) {
@@ -41,7 +45,6 @@ function registerUser(req, res) {
                     })
                 } else {
                     const password = req.query.password;
-                    console.log("====paswor: ", password);
                     bcryptPassword.encryptPassword(password)
                         .then(result => {
                             if (result) {
@@ -55,7 +58,6 @@ function registerUser(req, res) {
                                 };
                                 user.registerUser(param)
                                     .then(result => {
-                                        console.log("==== registerUser result: ", result);
                                         if (result.rowCount > 0) {
                                             res.status(200).json({
                                                 statusCode: 200,
@@ -100,7 +102,6 @@ function login(req, res) {
                 }
             })
             .then(result =>{
-                console.log("====boolVerifyPass===========: ",result);
                     if (result === true) {
                         return accessToken.accessToken(payload);
                     }else { // res.status(405).json({error: 'incorrect password'}).end();
@@ -109,7 +110,6 @@ function login(req, res) {
                     } 
             })
             .then((result) => {
-                console.log("====accestoken result: ", result);
                 if (result === true || result.access_token !== undefined && result.refresh_access_token !== undefined) {
                     token.access_token = result.access_token;
                     token.refresh_access_token = result.refresh_access_token;
@@ -129,4 +129,37 @@ function login(req, res) {
 
     })
 
+}
+
+function selectUserInfo(req,res){
+    let checkToken = accessToken.decodedToken(req,res);
+
+    if (checkToken === 'jwt expired') {
+        return res.status(401).end('token expires');
+    }else {
+        
+        if (checkToken.userid) {
+            user.selectUserInfo(checkToken.userid)
+            .then(result =>{
+                let userInnfo = {
+                    uuid:result.rows[0].uuid,
+                    userId: result.rows[0].user_id,
+                    name: result.rows[0].name,
+                    phoneNumber: result.rows[0].phone_number,
+                    company: result.rows[0].company,
+                    email: result.rows[0].email,
+                    role: result.rows[0].role,
+                    createdDate: result.rows[0].created_date,
+                };
+                res.status(200).json(userInnfo).end();
+            }).catch(err =>{
+                console.log("selectUserInfo Error: ",err);
+            })
+        }
+    }
+    
+}
+
+function testdecodetoken(req,res){
+    res.status(200).json('pass checklogin').end();
 }
