@@ -1,0 +1,3 @@
+GET http://localhost:4001/usersetting
+
+GET http://localhost:4001/registerUser
