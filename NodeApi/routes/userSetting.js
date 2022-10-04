@@ -21,6 +21,10 @@ router.post('/testdecodetoken',loginCheck ,function(req,res){
     userController.testdecodetoken(req,res);
 });
 
+// router.post('/r',loginCheck ,function(req,res){
+//     userController.testdecodetoken(req,res);
+// });
+
 router.get('/userinfo',loginCheck, function(req,res){
     userController.selectUserInfo(req,res);
 });

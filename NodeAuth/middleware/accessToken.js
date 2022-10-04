@@ -5,7 +5,9 @@ dotenv.config();
 //const expiresIn = {expiresIn: '30s'}
 
 module.exports = {
-    accessToken
+    accessToken,
+    decodedToken,
+    decodedRefeshToken
 }
 
 function accessToken(param){
@@ -27,4 +29,22 @@ function accessToken(param){
         }
     })
    
+}
+
+function decodedToken(req, res) {
+    return jwt.verify(req.rawHeaders[1], process.env.ACCES_TOKEN_SECRET, function (err, decoded) {
+        if (err) 
+            return 'jwt expired';
+        else return decoded;
+        
+    })
+}
+
+function decodedRefeshToken(req, res) {
+    return jwt.verify(req.rawHeaders[1], process.env.REFRESH_TOKEN_SECRET, function (err, decoded) {
+        if (err) 
+            return 'jwt expired';
+        else return decoded;
+        
+    })
 }

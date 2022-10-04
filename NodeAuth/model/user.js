@@ -21,10 +21,15 @@ module.exports = {
     },
 
     registToken: function(param){
-        console.log("registToken: ",param);
         let sql = `update authentication."user_account" set access_token = $1, refresh_access_token =$2
         where user_id = $3`;
         return query(sql, [param.access_token,param.refresh_access_token,param.useruuid]);
+    },
+
+    logout: function(useruuid){
+        let sql = `update authentication."user_account" set access_token = '', refresh_access_token =''
+        where user_id = $1`;
+        return query(sql, [useruuid]);
     }
     
 }

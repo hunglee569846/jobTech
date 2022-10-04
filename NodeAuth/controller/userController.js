@@ -10,7 +10,9 @@ const bcrypt = require('bcrypt');
 module.exports = {
     selectUserAccount,
     registerUser,
-    login
+    refreshToken,
+    login,
+    logout
 }
 
 function selectUserAccount(req, res) {
@@ -73,12 +75,12 @@ function registerUser(req, res) {
 };
 
 function login(req, res) {
-    return new Promise((resolve,reject) => {
+    return new Promise((resolve, reject) => {
         let userParam = {
             username: req.query.username,
             password: req.query.password,
         };
-        let token ={
+        let token = {
             access_token: '',
             refresh_access_token: '',
             useruuid: ''
@@ -92,30 +94,30 @@ function login(req, res) {
                 if (result.rows) {
                     payload.username = result.rows[0].user_name;
                     payload.userid = result.rows[0].user_id;
-                    
-                    token.useruuid= result.rows[0].user_id;
+
+                    token.useruuid = result.rows[0].user_id;
                     return bcryptPassword.verifyPassord(result.rows[0].hash_password, req.query.password);
                 }
             })
-            .then(result =>{
-                    if (result === true) {
-                        return accessToken.accessToken(payload);
-                    }else 
-                        throw new Error("incorrect password!");
+            .then(result => {
+                if (result === true) {
+                    return accessToken.accessToken(payload);
+                } else
+                    throw new Error("incorrect password!");
             })
             .then((result) => {
                 if (result === true || result.access_token !== undefined && result.refresh_access_token !== undefined) {
                     token.access_token = result.access_token;
                     token.refresh_access_token = result.refresh_access_token;
                     return user.registToken(token);
-                }else if (result === false) {
+                } else if (result === false) {
                     return false;
                 }
             })
-            .then(result=>{
-                if(result.rowCount > 0 ){
+            .then(result => {
+                if (result.rowCount > 0) {
                     res.status(200).json(token).end();
-                }else if (result === false) res.status(403).json('incorrect password').end();
+                } else if (result === false) res.status(403).json('incorrect password').end();
             })
             .catch(err => {
                 res.status(403).json(err).end();
@@ -124,10 +126,110 @@ function login(req, res) {
     })
 
 }
-function loginCheck(req, res, next) {
-    let decode_token = decodedToken(req, res);
-    if (decode_token === 'jwt expired') {
-        return res.status(401).json('token expires').end();
-    }else next();
 
+function refreshToken(req, res) {
+    return new Promise((resolve, reject) => {
+        let result = accessToken.decodedRefeshToken(req);
+        let tokenNew = {
+            access_token: '',
+            refresh_access_token: '',
+        };
+
+        let token = {
+            access_token: '',
+            refresh_access_token: '',
+            useruuid: result.userid
+        }
+
+        if (!result) {
+            res.status(401).json({ Error: "refesh token corected." }).end();
+        }
+        else {
+            let param = {
+                username: result.username,
+                userid: result.userid
+            }
+            user.selectUserbyUsername(param)
+                .then(result => {
+                    if (result.rows) {
+                        return accessToken.accessToken(param);
+                    } else
+                        throw new Error("incorrect password!");
+                })
+                .then((result) => {
+                    if (result === true || result.access_token !== undefined && result.refresh_access_token !== undefined) {
+                        token.access_token = result.access_token;
+                        token.refresh_access_token = result.refresh_access_token;
+                        tokenNew.access_token = result.access_token;
+                        tokenNew.refresh_access_token = result.refresh_access_token;
+                        return user.registToken(token);
+                    } else if (result === false) {
+                        return false;
+                    }
+                })
+                .then(result => {
+                    console.log("=====result: ", result);
+                    if (result.rowCount > 0) {
+                        res.status(200).json(tokenNew).end();
+                    } else if (result === false) res.status(403).json('incorrect password').end();
+                })
+                .catch(err => {
+                    res.status(403).json(err).end();
+                })
+        }
+
+
+    })
 }
+
+
+
+function logout(req, res) {
+    return new Promise((resolve, reject) => {
+        let userParam = {
+            username: req.query.username,
+            password: req.query.password,
+        };
+        let payload = {
+            username: '',
+            userid: '',
+        }
+        user.selectUserbyUsername(userParam)
+            .then(result => {
+                if (result.rows) {
+                    payload.username = result.rows[0].user_name;
+                    payload.userid = result.rows[0].user_id;
+                    token.useruuid = result.rows[0].user_id;
+                }
+                return bcryptPassword.verifyPassord(result.rows[0].hash_password, req.query.password);    
+            })
+            .then(result =>{
+                console.log("======result verifyPassord: ", result);
+                if (!result) {
+                    throw new Error("User password incorrect!");
+                }else
+                    return true;
+            })
+            .then(result => {
+                if (result === true) {
+                    console.log("======result: ", result);
+                    return user.logout(payload.userid);
+                } else
+                    throw new Error("incorrect password!");
+            })
+            .then(result => {
+                if (result.rowCount > 0) {
+                    res.status(200).json({ status: "lougout sucess." }).end();
+                } else
+                    throw new Error("logout false!");
+            }).catch(err => {
+                res.status(403).json(err).end();
+            })
+    })
+}
+
+// function logout(){
+//     return new Promise((resolve, reject)=>{
+
+//     })
+// }

@@ -13,7 +13,8 @@ module.exports = {
     registerUser,
     login, 
     selectUserInfo,
-    testdecodetoken
+    testdecodetoken,
+    refreshToken
 }
 
 function selectUserAccount(req, res) {
@@ -159,6 +160,10 @@ function selectUserInfo(req,res){
     }
     
 }
+
+function refreshToken( req, res ){
+
+} 
 
 function testdecodetoken(req,res){
     res.status(200).json('pass checklogin').end();
