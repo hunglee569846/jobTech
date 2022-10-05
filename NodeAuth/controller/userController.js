@@ -83,7 +83,7 @@ function login(req, res) {
         let token = {
             access_token: '',
             refresh_access_token: '',
-            useruuid: ''
+            //useruuid: ''
         }
         let payload = {
             username: '',
@@ -94,7 +94,6 @@ function login(req, res) {
                 if (result.rows) {
                     payload.username = result.rows[0].user_name;
                     payload.userid = result.rows[0].user_id;
-
                     token.useruuid = result.rows[0].user_id;
                     return bcryptPassword.verifyPassord(result.rows[0].hash_password, req.query.password);
                 }
@@ -151,7 +150,7 @@ function refreshToken(req, res) {
             }
             user.selectUserbyUsername(param)
                 .then(result => {
-                    if (result.rows) {
+                    if (!!result.rows && result.rows[0].refresh_access_token === req.rawHeaders[1]) {
                         return accessToken.accessToken(param);
                     } else
                         throw new Error("incorrect password!");
@@ -174,7 +173,7 @@ function refreshToken(req, res) {
                     } else if (result === false) res.status(403).json('incorrect password').end();
                 })
                 .catch(err => {
-                    res.status(403).json(err).end();
+                    res.status(404).json(err.message).end();
                 })
         }
 
@@ -196,23 +195,22 @@ function logout(req, res) {
         }
         user.selectUserbyUsername(userParam)
             .then(result => {
-                if (result.rows) {
+                if (result.rowCount == 0) {
+                    throw new Error("User password incorrect!");
+                }else {
                     payload.username = result.rows[0].user_name;
                     payload.userid = result.rows[0].user_id;
-                    token.useruuid = result.rows[0].user_id;
+                    return bcryptPassword.verifyPassord(result.rows[0].hash_password, req.query.password);
                 }
-                return bcryptPassword.verifyPassord(result.rows[0].hash_password, req.query.password);    
             })
             .then(result =>{
-                console.log("======result verifyPassord: ", result);
-                if (!result) {
+                if (result !== true) {
                     throw new Error("User password incorrect!");
                 }else
                     return true;
             })
             .then(result => {
                 if (result === true) {
-                    console.log("======result: ", result);
                     return user.logout(payload.userid);
                 } else
                     throw new Error("incorrect password!");
@@ -223,7 +221,7 @@ function logout(req, res) {
                 } else
                     throw new Error("logout false!");
             }).catch(err => {
-                res.status(403).json(err).end();
+                return res.status(404).json(err.message).end();
             })
     })
 }
