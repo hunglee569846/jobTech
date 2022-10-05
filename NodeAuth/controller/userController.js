@@ -17,8 +17,7 @@ module.exports = {
 
 function selectUserAccount(req, res) {
     return new Promise(() => {
-        console.log("request: ", req);
-        user.selectUserInfo()
+        user.selectAccoutInfo()
             .then((result) => {
                 if (result) {
                     console.log("=======result:", result.rows);
@@ -226,8 +225,3 @@ function logout(req, res) {
     })
 }
 
-// function logout(){
-//     return new Promise((resolve, reject)=>{
-
-//     })
-// }
