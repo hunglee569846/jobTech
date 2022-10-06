@@ -128,6 +128,8 @@ function login(req, res) {
 function refreshToken(req, res) {
     return new Promise((resolve, reject) => {
         let result = accessToken.decodedRefeshToken(req);
+        let reqHeader = req.rawHeaders[1];
+        const header_request_cut = reqHeader.split(" ");
         let tokenNew = {
             access_token: '',
             refresh_access_token: '',
@@ -149,7 +151,7 @@ function refreshToken(req, res) {
             }
             user.selectUserbyUsername(param)
                 .then(result => {
-                    if (!!result.rows && result.rows[0].refresh_access_token === req.rawHeaders[1]) {
+                    if (!!result.rows && result.rows[0].refresh_access_token === header_request_cut[1]) {
                         return accessToken.accessToken(param);
                     } else
                         throw new Error("incorrect password!");
@@ -157,16 +159,15 @@ function refreshToken(req, res) {
                 .then((result) => {
                     if (result === true || result.access_token !== undefined && result.refresh_access_token !== undefined) {
                         token.access_token = result.access_token;
-                        token.refresh_access_token = result.refresh_access_token;
+                        token.refresh_access_token = header_request_cut[1]; //result.refresh_access_token; refresh token save new refresh token
                         tokenNew.access_token = result.access_token;
-                        tokenNew.refresh_access_token = result.refresh_access_token;
+                        tokenNew.refresh_access_token = header_request_cut[1]; //result.refresh_access_token;
                         return user.registToken(token);
                     } else if (result === false) {
                         return false;
                     }
                 })
                 .then(result => {
-                    console.log("=====result: ", result);
                     if (result.rowCount > 0) {
                         res.status(200).json(tokenNew).end();
                     } else if (result === false) res.status(403).json('incorrect password').end();
@@ -196,16 +197,16 @@ function logout(req, res) {
             .then(result => {
                 if (result.rowCount == 0) {
                     throw new Error("User password incorrect!");
-                }else {
+                } else {
                     payload.username = result.rows[0].user_name;
                     payload.userid = result.rows[0].user_id;
                     return bcryptPassword.verifyPassord(result.rows[0].hash_password, req.query.password);
                 }
             })
-            .then(result =>{
+            .then(result => {
                 if (result !== true) {
                     throw new Error("User password incorrect!");
-                }else
+                } else
                     return true;
             })
             .then(result => {

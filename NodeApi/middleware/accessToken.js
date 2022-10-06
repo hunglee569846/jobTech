@@ -9,7 +9,8 @@ dotenv.config();
 module.exports = {
     accessToken,
     loginCheck,
-    decodedToken
+    decodedToken,
+    checkPermission
 }
 
 function accessToken(param) {
@@ -34,20 +35,35 @@ function accessToken(param) {
 
 }
 
-function decodedToken(req, res) {
-        return jwt.verify(req.rawHeaders[1], process.env.ACCES_TOKEN_SECRET, function (err, decoded) {
+function decodedToken(req) {
+    let reqHeader = req.rawHeaders[1];
+    const header_request_cut = reqHeader.split(" ");
+        return jwt.verify(header_request_cut[1], process.env.ACCES_TOKEN_SECRET, function (err, decoded) {
             if (err) 
                 return 'jwt expired';
             else return decoded;
-            
         })
 }
 
 function loginCheck(req, res, next) {
-    let decode_token = decodedToken(req, res);
+    let decode_token = decodedToken(req);
     if (decode_token === 'jwt expired') {
         return res.status(401).json('token expires').end();
     } else next();
 
+}
+
+function checkPermission(req,res){
+    return new Promise ((resolve, reject)=>{
+    let decode_token = decodedToken(req);
+    if (!!decode_token && decode_token !== 'jwt expired') {
+        user.selectUserInfo(decode_token.userid)
+        .then(result =>{
+            resolve(result.rows[0].role);
+        })
+    }else
+        return res.status(401).json("token expired").end();
+    })
+    
 }
 

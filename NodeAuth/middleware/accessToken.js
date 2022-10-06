@@ -10,16 +10,16 @@ module.exports = {
     decodedRefeshToken
 }
 
-function accessToken(param){
-    return new Promise((resolve, reject)=>{
+function accessToken(param) {
+    return new Promise((resolve, reject) => {
         try {
-            let payload= {
+            let payload = {
                 username: param.username,
                 userid: param.userid,
             }
             let responseToken = {
-                access_token: jwt.sign(payload,process.env.ACCES_TOKEN_SECRET,{expiresIn: '30s'},payload.userid),
-                refresh_access_token: jwt.sign(payload,process.env.REFRESH_TOKEN_SECRET,'',payload.userid)
+                access_token: jwt.sign(payload, process.env.ACCES_TOKEN_SECRET, { expiresIn: '3m' }, payload.userid),
+                refresh_access_token: jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET, '', payload.userid)
             }
 
             resolve(responseToken);
@@ -28,23 +28,25 @@ function accessToken(param){
             reject(error);
         }
     })
-   
+
 }
 
 function decodedToken(req, res) {
     return jwt.verify(req.rawHeaders[1], process.env.ACCES_TOKEN_SECRET, function (err, decoded) {
-        if (err) 
+        if (err)
             return 'jwt expired';
         else return decoded;
-        
+
     })
 }
 
 function decodedRefeshToken(req, res) {
-    return jwt.verify(req.rawHeaders[1], process.env.REFRESH_TOKEN_SECRET, function (err, decoded) {
-        if (err) 
+    let reqHeaderToken = req.rawHeaders[1];
+    const header_request_cut_token = reqHeaderToken.split(" ");
+    return jwt.verify(header_request_cut_token[1], process.env.REFRESH_TOKEN_SECRET, function (err, decoded) {
+        if (err)
             return 'jwt expired';
         else return decoded;
-        
+
     })
 }

@@ -1,0 +1,16 @@
+---tableuser_info
+uuid
+name
+user_id
+phone_number
+company
+email
+role
+created_date
+isdelete
+isactive
+current_update
+
+ALTER TABLE authentication.user_info ADD CONSTRAINT user_info_pk PRIMARY KEY (uuid)
+ALTER TABLE authentication.user_info ADD CONSTRAINT user_info_fk FOREIGN KEY (user_id) 
+REFERENCES authentication.user_account(user_id)
