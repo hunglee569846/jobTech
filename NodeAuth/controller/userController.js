@@ -78,6 +78,7 @@ function login(req, res) {
         let userParam = {
             username: req.query.username,
             password: req.query.password,
+            failCount: 0
         };
         let token = {
             access_token: '',
@@ -94,14 +95,32 @@ function login(req, res) {
                     payload.username = result.rows[0].user_name;
                     payload.userid = result.rows[0].user_id;
                     token.useruuid = result.rows[0].user_id;
+                    userParam.failCount = result.rows[0].fail_count;
                     return bcryptPassword.verifyPassord(result.rows[0].hash_password, req.query.password);
                 }
             })
             .then(result => {
-                if (result === true) {
+                if (result === true && userParam.failCount !== Number(process.env.ACCOUNT_FAIL)) {
                     return accessToken.accessToken(payload);
-                } else
-                    throw new Error("incorrect password!");
+                } else {
+                    if (userParam.failCount === Number(process.env.ACCOUNT_FAIL)) {
+                        throw new UserException("Account is block 30 days!", userParam.failCount,process.env.ACCOUNT_FAIL);
+                    } else {
+                        return user.updateFailCountAccount(userParam)
+                    }
+                }
+            })
+            .then(result =>{
+                console.log('+++++log result: ', result);
+                if (result.command === 'UPDATE') {
+                    throw new UserException("incorrect password!", userParam.failCount,process.env.ACCOUNT_FAIL);
+                }
+
+                if (result.access_token !== 'undefined') {
+                    return result;
+                }
+                
+                
             })
             .then((result) => {
                 if (result === true || result.access_token !== undefined && result.refresh_access_token !== undefined) {
@@ -118,11 +137,16 @@ function login(req, res) {
                 } else if (result === false) res.status(403).json('incorrect password').end();
             })
             .catch(err => {
-                res.status(403).json(err).end();
+                res.status(401).json(err).end();
             })
 
     })
 
+}
+function UserException(message, failCount, ACCOUNT_FAIL) {
+    this.message = message;
+    this.fail_count = `Account login fail: ${(failCount)}`;
+    this.warning = `You have ${(ACCOUNT_FAIL - failCount)} logins left. 5 wrong logins will be locked for 30 days`;
 }
 
 function refreshToken(req, res) {
@@ -225,4 +249,6 @@ function logout(req, res) {
             })
     })
 }
+
+
 

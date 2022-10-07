@@ -21,7 +21,7 @@ module.exports = {
     },
 
     registToken: function(param){
-        let sql = `update authentication."user_account" set access_token = $1, refresh_access_token =$2
+        let sql = `update authentication."user_account" set access_token = $1, refresh_access_token =$2, fail_count = 0
         where user_id = $3`;
         return query(sql, [param.access_token,param.refresh_access_token,param.useruuid]);
     },
@@ -30,6 +30,11 @@ module.exports = {
         let sql = `update authentication."user_account" set access_token = '', refresh_access_token =''
         where user_id = $1`;
         return query(sql, [useruuid]);
+    },
+
+    updateFailCountAccount: function(param){
+        let sql = `update authentication.user_account set fail_count = (select fail_count from authentication.user_account where user_name = $1) + 1 where user_name = $1`;
+        return query(sql, [param.username]);
     }
     
 }
