@@ -38,9 +38,13 @@ function accessToken(param) {
 function decodedToken(req) {
     let reqHeader = req.rawHeaders[1];
     const header_request_cut = reqHeader.split(" ");
+    console.log(111111,header_request_cut[1]);
         return jwt.verify(header_request_cut[1], process.env.ACCES_TOKEN_SECRET, function (err, decoded) {
-            if (err) 
+            if (err) {
+                console.log("===== error: ", err);
                 return 'jwt expired';
+            }
+                
             else return decoded;
         })
 }

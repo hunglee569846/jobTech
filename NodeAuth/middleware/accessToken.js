@@ -18,7 +18,7 @@ function accessToken(param) {
                 userid: param.userid,
             }
             let responseToken = {
-                access_token: jwt.sign(payload, process.env.ACCES_TOKEN_SECRET, { expiresIn: '3m' }, payload.userid),
+                access_token: jwt.sign(payload, process.env.ACCES_TOKEN_SECRET, { expiresIn: '30m' }, payload.userid),
                 refresh_access_token: jwt.sign(payload, process.env.REFRESH_TOKEN_SECRET, '', payload.userid)
             }
 

@@ -111,7 +111,6 @@ function login(req, res) {
                 }
             })
             .then(result =>{
-                console.log('+++++log result: ', result);
                 if (result.command === 'UPDATE') {
                     throw new UserException("incorrect password!", userParam.failCount,process.env.ACCOUNT_FAIL);
                 }

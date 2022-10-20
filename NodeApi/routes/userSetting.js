@@ -25,7 +25,8 @@ router.post('/testdecodetoken',loginCheck ,function(req,res){
 //     userController.testdecodetoken(req,res);
 // });
 
-router.get('/userinfo',loginCheck, function(req,res){
+router.get('/userinfo',loginCheck, function(req,res){0
+    console.log('+=====req.user: ',req);
     userController.selectUserInfo(req,res);
 });
 
@@ -43,6 +44,7 @@ async function permission(req,res,next){
 }
 
 function loginCheck(req, res, next) {
+    console.log('+=====req.user: ',req);
     let decodeA = AccessTokenMiddle.decodedToken(req, res);
         if (decodeA === 'jwt expired') {
             return res.status(503).end('token expires');
