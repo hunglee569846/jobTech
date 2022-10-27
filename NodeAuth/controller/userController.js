@@ -20,7 +20,6 @@ function selectUserAccount(req, res) {
         user.selectAccoutInfo()
             .then((result) => {
                 if (result) {
-                    console.log("=======result:", result.rows);
                     res.status(200).json(result.rows).end();
                 }
             }).catch(err => console.log("select info Error: ", err))
