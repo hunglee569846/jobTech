@@ -98,6 +98,10 @@ dist
 .cache/
 # Comment in the public line in if your project uses Gatsby and not Next.js
 # https://nextjs.org/blog/next-9-1#public-directory-support
+<<<<<<< HEAD
+=======
+
+>>>>>>> 244dc981c152558c6c29b0f0b1f8249a4412adcf
 # public
 
 # vuepress build output
@@ -140,4 +144,13 @@ dist
 # SvelteKit build / generate output
 .svelte-kit
 
+<<<<<<< HEAD
 # End of https://www.toptal.com/developers/gitignore/api/node
+=======
+# End of https://www.toptal.com/developers/gitignore/api/node
+
+#folde log
+
+/NodeApi/log
+/NodeAuth/log
+>>>>>>> 244dc981c152558c6c29b0f0b1f8249a4412adcf
